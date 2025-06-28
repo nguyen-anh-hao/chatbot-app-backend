@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from auth.google_auth import google_router
 from routes.chat import chat_router
 from routes.history import history_router
+from routes.image import image_router
 import config
 
 app = FastAPI()
@@ -29,3 +30,4 @@ app.add_middleware(
 app.include_router(google_router)
 app.include_router(chat_router)
 app.include_router(history_router)
+app.include_router(image_router)

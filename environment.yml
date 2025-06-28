@@ -1,0 +1,16 @@
+name: chat-env
+channels:
+  - defaults
+  - conda-forge
+
+dependencies:
+  - python=3.10  # hoặc đổi thành 3.11 nếu muốn
+  - pip
+  - pip:
+      - fastapi
+      - uvicorn
+      - python-dotenv
+      - authlib
+      - motor
+      - python-multipart
+      - ipykernel

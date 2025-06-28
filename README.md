@@ -4,4 +4,7 @@ conda env create -f environment.yml
 
 # Kích hoạt
 conda activate chat-env
+
+# Run
+uvicorn main:app --reload
 ```

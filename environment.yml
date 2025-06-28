@@ -14,3 +14,5 @@ dependencies:
       - motor
       - python-multipart
       - ipykernel
+      - itsdangerous
+      - httpx

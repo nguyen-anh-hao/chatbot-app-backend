@@ -4,3 +4,4 @@ import config
 client = AsyncIOMotorClient(config.MONGO_URI)
 db = client["chat_app"]
 chat_collection = db["chats"]
+conversation_collection = db["conversations"]

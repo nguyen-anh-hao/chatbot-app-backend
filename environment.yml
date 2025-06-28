@@ -12,6 +12,7 @@ dependencies:
       - python-dotenv
       - authlib
       - motor
+      - pymongo
       - python-multipart
       - ipykernel
       - itsdangerous

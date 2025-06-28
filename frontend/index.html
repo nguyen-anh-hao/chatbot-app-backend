@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Chat Test UI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 30px auto;
+            line-height: 1.5;
+        }
+
+        button {
+            padding: 6px 12px;
+            margin-top: 5px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+        }
+
+        #user-info {
+            margin-top: 10px;
+        }
+
+        #user-info img {
+            border-radius: 50%;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 6px;
+        }
+
+        hr {
+            margin: 20px 0;
+        }
+
+        .user-message {
+            color: #0066cc;
+            font-weight: bold;
+        }
+
+        .bot-message {
+            color: #009900;
+            font-style: italic;
+        }
+        
+        .conversation-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        
+        .conversation-item {
+            padding: 8px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .conversation-item:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .conversation-item.active {
+            background-color: #e3f2fd;
+        }
+        
+        .current-conversation {
+            font-weight: bold;
+            color: #1976d2;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <script>
+        const BASE_URL = "https://4a9d-113-161-91-25.ngrok-free.app";
+        let currentConversationId = null;
+
+        function login() {
+            window.location.href = `${BASE_URL}/login`;
+        }
+
+        function logout() {
+            window.location.href = `${BASE_URL}/logout`;
+        }
+
+        async function getUserInfo() {
+            const res = await fetch(`${BASE_URL}/me`, {
+                credentials: "include",
+                headers: {
+                    "ngrok-skip-browser-warning": "true"
+                }
+            });
+            const userInfo = document.getElementById("user-info");
+
+            if (res.ok) {
+                const data = await res.json();
+                const user = data.user;
+
+                if (user) {
+                    userInfo.innerHTML = `
+                        <img src="${user.picture}" width="40">
+                        <strong>${user.name}</strong> (${user.email})
+                    `;
+                } else {
+                    userInfo.innerText = "❌ Chưa đăng nhập";
+                }
+            } else {
+                userInfo.innerText = "❌ Chưa đăng nhập";
+            }
+        }
+
+        async function getConversations() {
+            const res = await fetch(`${BASE_URL}/api/conversations`, {
+                credentials: "include",
+                headers: {
+                    "ngrok-skip-browser-warning": "true"
+                }
+            });
+            
+            const list = document.getElementById("conversations");
+            list.innerHTML = "";
+
+            if (res.ok) {
+                const conversations = await res.json();
+                if (conversations.length === 0) {
+                    list.innerHTML = "<div>📭 Chưa có cuộc hội thoại nào</div>";
+                } else {
+                    conversations.forEach(conv => {
+                        const div = document.createElement("div");
+                        div.className = "conversation-item";
+                        if (conv.id === currentConversationId) {
+                            div.classList.add("active");
+                        }
+                        div.innerHTML = `
+                            <strong>${conv.topic}</strong><br>
+                            <small>Tin nhắn: ${conv.message_count} | ${new Date(conv.last_message_at).toLocaleString()}</small>
+                        `;
+                        div.onclick = () => selectConversation(conv.id, conv.topic);
+                        list.appendChild(div);
+                    });
+                }
+            } else {
+                list.innerHTML = "<div>❌ Không thể tải danh sách hội thoại</div>";
+            }
+        }
+
+        function selectConversation(conversationId, topic) {
+            currentConversationId = conversationId;
+            document.getElementById("current-conversation").innerText = `Cuộc hội thoại hiện tại: ${topic}`;
+            getConversations();
+            getHistory();
+        }
+
+        async function createConversation() {
+            const topic = prompt("Nhập chủ đề cuộc hội thoại:");
+            if (!topic) return;
+
+            const res = await fetch(`${BASE_URL}/api/conversations`, {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                    "ngrok-skip-browser-warning": "true"
+                },
+                body: JSON.stringify({ topic: topic })
+            });
+
+            if (res.ok) {
+                const conversation = await res.json();
+                currentConversationId = conversation.id;
+                document.getElementById("current-conversation").innerText = `Cuộc hội thoại hiện tại: ${topic}`;
+                getConversations();
+            } else {
+                alert("❌ Không thể tạo cuộc hội thoại");
+            }
+        }
+
+        async function sendMessage() {
+            const text = document.getElementById("message").value;
+            const status = document.getElementById("send-status");
+
+            if (!text.trim()) {
+                status.innerText = "❗ Vui lòng nhập nội dung";
+                return;
+            }
+
+            if (!currentConversationId) {
+                status.innerText = "❗ Vui lòng chọn hoặc tạo cuộc hội thoại";
+                return;
+            }
+
+            const res = await fetch(`${BASE_URL}/api/chat`, {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                    "ngrok-skip-browser-warning": "true"
+                },
+                body: JSON.stringify({ 
+                    text: text, 
+                    images: [],
+                    conversation_id: currentConversationId
+                })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                if (data.error) {
+                    status.innerText = "❌ " + data.error;
+                } else {
+                    status.innerText = "✅ Đã gửi: " + data.reply;
+                    document.getElementById("message").value = "";
+                    setTimeout(() => {
+                        getHistory();
+                        getConversations();
+                    }, 500);
+                }
+            } else {
+                status.innerText = "❌ Gửi thất bại";
+            }
+        }
+
+        async function getHistory() {
+            if (!currentConversationId) {
+                document.getElementById("history").innerHTML = "<li>❗ Chưa chọn cuộc hội thoại</li>";
+                return;
+            }
+
+            const res = await fetch(`${BASE_URL}/api/conversations/${currentConversationId}/messages`, {
+                credentials: "include",
+                headers: {
+                    "ngrok-skip-browser-warning": "true"
+                }
+            });
+            
+            const list = document.getElementById("history");
+            list.innerHTML = "";
+
+            if (res.ok) {
+                const data = await res.json();
+
+                if (data.error) {
+                    list.innerHTML = "<li>❌ " + data.error + "</li>";
+                    return;
+                }
+
+                if (Array.isArray(data)) {
+                    if (data.length === 0) {
+                        list.innerHTML = "<li>📭 Chưa có tin nhắn nào trong cuộc hội thoại này</li>";
+                    } else {
+                        data.forEach(msg => {
+                            const li = document.createElement("li");
+                            const roleClass = msg.role === 'user' ? 'user-message' : 'bot-message';
+                            const roleIcon = msg.role === 'user' ? '👤' : '🤖';
+                            const timestamp = new Date(msg.timestamp).toLocaleString();
+
+                            li.innerHTML = `
+                                <span class="${roleClass}">
+                                    ${roleIcon} ${msg.role.toUpperCase()}: ${msg.text || 'Tin nhắn hình ảnh'}
+                                </span>
+                                <br><small style="color: #666;">${timestamp}</small>
+                            `;
+                            list.appendChild(li);
+                        });
+                    }
+                }
+            } else {
+                list.innerHTML = "<li>❌ Không thể tải lịch sử</li>";
+            }
+        }
+
+        // Cho phép gửi tin nhắn bằng Enter
+        document.addEventListener('DOMContentLoaded', function () {
+            const messageInput = document.getElementById("message");
+            if (messageInput) {
+                messageInput.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        sendMessage();
+                    }
+                });
+            }
+        });
+
+        // Tự động kiểm tra trạng thái login khi load trang
+        window.onload = function() {
+            getUserInfo();
+            getConversations();
+        };
+    </script>
+
+    <h2>🔐 Đăng nhập Google</h2>
+    <button onclick="login()">Đăng nhập</button>
+    <button onclick="logout()">Đăng xuất</button>
+    <div id="user-info"></div>
+
+    <hr>
+
+    <h2>💼 Quản lý cuộc hội thoại</h2>
+    <button onclick="getConversations()">Tải danh sách</button>
+    <button onclick="createConversation()">Tạo cuộc hội thoại mới</button>
+    <div id="conversations" class="conversation-list"></div>
+    <div id="current-conversation" class="current-conversation">Chưa chọn cuộc hội thoại</div>
+
+    <hr>
+
+    <h2>💬 Gửi tin nhắn</h2>
+    <input type="text" id="message" placeholder="Nhập tin nhắn..." />
+    <button onclick="sendMessage()">Gửi</button>
+    <p id="send-status"></p>
+
+    <hr>
+
+    <h2>🕘 Lịch sử hội thoại</h2>
+    <button onclick="getHistory()">Xem lịch sử</button>
+    <ul id="history"></ul>
+</body>
+
+</html>

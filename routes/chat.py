@@ -4,8 +4,11 @@ from database.mongodb import chat_collection, conversation_collection
 from datetime import datetime
 from bson import ObjectId
 import re
+from rag_production import RAGRecipeModel
+# from llm.models import ModelHandler
 
 chat_router = APIRouter()
+# model_handler = ModelHandler()
 
 def generate_topic_from_message(text: str) -> str:
     """Generate a simple topic from the first message"""
@@ -55,7 +58,19 @@ async def chat(msg: ChatMessage, request: Request):
         "timestamp": current_time
     })
 
-    bot_reply = "Xin chào, tôi đã nhận được tin nhắn!"
+    # model = model_handler.get_model()
+    # results = model.search(msg.text, top_k=3)
+    # bot_reply = f"\nTop 3 results for '{msg.text}':\n"
+    # for result in results:
+    #     bot_reply += f"{result['rank']}. {result['title']} (Score: {result['similarity_score']:.3f})\n"
+
+    # bot_reply = "Đây là câu trả lời từ bot. Vui lòng tích hợp mô hình LLM của bạn để trả lời câu hỏi."
+    model = RAGRecipeModel()
+    model.load_model()
+    results = model.search(msg.text, top_k=3)
+    bot_reply = f"Top 3 results for '{msg.text}':\n"
+    for result in results:
+        bot_reply += f"{result['rank']}. {result['title']} (Score: {result['similarity_score']:.3f})\n"
     
     # Save bot reply
     await chat_collection.insert_one({

@@ -6,6 +6,7 @@ channels:
 dependencies:
   - python=3.10  # hoặc đổi thành 3.11 nếu muốn
   - pip
+  - faiss-cpu
   - pip:
       - fastapi
       - uvicorn
@@ -17,3 +18,4 @@ dependencies:
       - ipykernel
       - itsdangerous
       - httpx
+      - sentence-transformers

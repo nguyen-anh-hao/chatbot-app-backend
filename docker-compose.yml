@@ -1,13 +1,79 @@
 version: '3.8'
+
 services:
+  # MongoDB Database
   mongo:
-    image: mongo:latest
-    container_name: mongo
+    image: mongo:7.0
+    container_name: chatbot-mongo
     ports:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+      - ./mongo-init:/docker-entrypoint-initdb.d
+    environment:
+      - MONGO_INITDB_DATABASE=chat_app
     restart: unless-stopped
+    networks:
+      - chatbot-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI Application
+  chatbot-api:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: chatbot-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./model_artifacts:/app/model_artifacts
+      - ./logs:/app/logs
+      - ./Llama-3.2-1B-Instruct:/app/Llama-3.2-1B-Instruct
+      - ./checkpoint-2450:/app/checkpoint-2450
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/chat_app
+      - SECRET_KEY=your-super-secret-key-change-this-in-production
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - REDIRECT_RESPONSE=${REDIRECT_RESPONSE:-http://localhost:3000}
+      - CUDA_VISIBLE_DEVICES=0
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - chatbot-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # Redis for caching (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: chatbot-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - chatbot-network
 
 volumes:
   mongo_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  chatbot-network:
+    driver: bridge

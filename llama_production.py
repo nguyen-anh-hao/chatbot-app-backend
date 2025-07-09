@@ -6,7 +6,7 @@ import torch
 
 class LlamaChatModel:
     def __init__(self,
-                 base_model_path="meta-llama/Llama-3.2-1B-Instruct",
+                 base_model_path="TinyLlama/TinyLlama-1.1B-Chat-v1.0",
                  adapter_path="./checkpoint-2450"):
         # Load tokenizer
         self.tokenizer = AutoTokenizer.from_pretrained(adapter_path)

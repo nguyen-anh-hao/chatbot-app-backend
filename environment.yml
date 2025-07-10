@@ -6,7 +6,7 @@ channels:
 dependencies:
   - python=3.10  # hoặc 3.11 nếu bạn muốn
   - pip
-  - faiss-cpu
+  - faiss-gpu
   - pip:
       - fastapi
       - uvicorn

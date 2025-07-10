@@ -27,15 +27,15 @@ app.add_middleware(
     SessionMiddleware,
     secret_key=config.SECRET_KEY,
     same_site="none",
-    https_only=False,  # Set to True in production with HTTPS
+    https_only=True,  # Set to True in production with HTTPS
 )
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         config.REDIRECT_RESPONSE,
-        "http://localhost:3000",  # Development frontend
-        "https://your-domain.com"  # Production frontend
+        "http://localhost:5173",  # Development frontend
+        "https://nguyenanhhao.site"  # Production frontend
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -62,6 +62,14 @@ app.include_router(image_router)
 async def startup_event():
     """Initialize application on startup"""
     logger.info("Starting Chatbot API...")
+    
+    # Check GPU availability
+    import torch
+    if torch.cuda.is_available():
+        logger.info(f"GPU detected: {torch.cuda.get_device_name(0)}")
+        logger.info(f"CUDA version: {torch.version.cuda}")
+    else:
+        logger.warning("No GPU detected! Running in CPU mode (slower)")
     
     # Create necessary directories
     os.makedirs(config.UPLOAD_DIR, exist_ok=True)

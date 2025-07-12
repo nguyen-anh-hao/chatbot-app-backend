@@ -25,7 +25,7 @@ nano .env
 ### 2. Prepare Models
 Ensure you have the required model files:
 - `./Llama-3.2-1B-Instruct/` - Base Llama model
-- `./checkpoint-2450/` - Fine-tuned adapter
+- `./checkpoint-4990/` - Fine-tuned adapter
 - `./model_artifacts/` - RAG model artifacts
 
 ### 3. Build and Run
@@ -60,7 +60,7 @@ conda activate chat-env
 pip install -r requirements.txt
 
 # Run
-uvicorn main:app --reload
+uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
 ## 📦 Docker Commands
@@ -110,7 +110,7 @@ chatbot-app-backend/
 ├── logs/              # Application logs
 ├── model_artifacts/   # RAG model files
 ├── Llama-3.2-1B-Instruct/  # Base model
-├── checkpoint-2450/        # Fine-tuned adapter
+├── checkpoint-4990/        # Fine-tuned adapter
 ├── Dockerfile              # Docker configuration
 ├── docker-compose.yml # Multi-service setup
 ├── requirements.txt   # Python dependencies

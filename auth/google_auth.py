@@ -22,7 +22,7 @@ oauth.register(
 
 @google_router.get("/login")
 async def login(request: Request):
-    redirect_uri = str(request.url_for('auth'))
+    redirect_uri = str(request.url_for('auth')).replace("http://", "https://") 
     print("🔁 Redirect URI used:", redirect_uri)
     return await oauth.google.authorize_redirect(request, redirect_uri)
 

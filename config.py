@@ -16,7 +16,7 @@ REDIRECT_RESPONSE = os.getenv("REDIRECT_RESPONSE", "http://localhost:3000")
 
 # Model paths (updated for Docker)
 LLAMA_MODEL_PATH = os.getenv("LLAMA_MODEL_PATH", "./Llama-3.2-1B-Instruct")
-ADAPTER_PATH = os.getenv("ADAPTER_PATH", "./checkpoint-2450")
+ADAPTER_PATH = os.getenv("ADAPTER_PATH", "./checkpoint-4990")
 RAG_MODEL_PATH = os.getenv("RAG_MODEL_PATH", "./model_artifacts")
 
 # File upload settings

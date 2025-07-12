@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class LlamaChatModel:
     def __init__(self,
                  base_model_path="meta-llama/Llama-3.2-1B-Instruct",
-                 adapter_path="./checkpoint-2450"):
+                 adapter_path="./checkpoint-4990"):
         
         self.base_model_path = base_model_path
         self.adapter_path = adapter_path

@@ -34,7 +34,7 @@ services:
       - ./model_artifacts:/app/model_artifacts
       - ./logs:/app/logs
       - ./Llama-3.2-1B-Instruct:/app/Llama-3.2-1B-Instruct
-      - ./checkpoint-2450:/app/checkpoint-2450
+      - ./checkpoint-4990:/app/checkpoint-4990
     environment:
       - MONGO_URI=mongodb://mongo:27017/chat_app
       - SECRET_KEY=your-super-secret-key-change-this-in-production
